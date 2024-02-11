@@ -9,7 +9,7 @@ npm start
 ```
 2. Starting up react
 ```
-npm run dev
+npm start
 ```
 
 ## Note
