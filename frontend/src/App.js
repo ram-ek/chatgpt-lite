@@ -1,36 +1,51 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { useContext } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
 // pages & components
-import Signup from './components/Signup'
-import Login from './components/Login'
-import UserPage from './components/UserPage'
-import AdminPage from './components/AdminPage'
+import Home from './pages/Home'
+import Signup from './pages/Signup'
+import Login from './pages/Login'
+import Admin from './pages/Admin'
+import Navbar from './components/Navbar'
+
+import { AuthContext } from './context/AuthContext'
 
 function App() {
+  const { user } = useContext(AuthContext)
+
   return (
     <div className="App">
       <BrowserRouter>
+        <Navbar />
         <div className="Pages">
           <Routes>
             <Route 
               path="/"
-              element={ <Signup /> }
+              element={ !user ? <Login /> : user.role === 'admin' ? <Navigate to='/admin'/> : <Navigate to='/home' /> }
             />
             <Route 
               path="/signup"
-              element={ <Signup /> }
+              element={ !user ? <Signup /> : user.role === 'admin' ? <Navigate to='/admin'/> : <Navigate to='/home' /> }
             />
             <Route 
               path="/login"
-              element={ <Login /> }
+              element={ !user ? <Login /> : user.role === 'admin' ? <Navigate to='/admin'/> : <Navigate to='/home' /> }
             />
             <Route 
-              path="/user"
-              element={ <UserPage /> }
+              path="/home"
+              element={ user && user.role === 'user' ? <Home /> : <Navigate to='/login' /> }
             />
             <Route 
               path="/admin"
-              element={ <AdminPage /> }
+              element={ user && user.role === 'admin' ? <Admin /> : <Navigate to='/login' /> }
+            />
+            <Route 
+              path='/admin-test'
+              element={ <Admin /> }
+            />
+            <Route 
+              path='home-test'
+              element={ <Home /> }
             />
           </Routes>
         </div>  

@@ -5,18 +5,15 @@ const validator = require('validator')
 const Schema = mongoose.Schema
 
 const userSchema = new Schema({
-    name: {
+    email: {
         type: String,
-        required: true
+        required: true,
+        unique: true,
+        lowercase: true
     },
     role: {
         type: String,
         required: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true
     },
     password: {
         type: String,
@@ -25,24 +22,27 @@ const userSchema = new Schema({
 })
 
 // static signup method
-userSchema.statics.signup = async function(name, role, email, password) {
+userSchema.statics.signup = async function(email, role, password) {
     // validation
-    if(!name.trim() || !role.trim() || !email || !password.trim())
+    if(!email.trim() || !role.trim() || !password.trim())
         throw Error('All fields are required.')
 
     if(!validator.isEmail(email))
         throw Error('Email not valid.')
 
+    if(!validator.isStrongPassword(password))
+        throw Error('Password is not strong enough (1 Uppercase, 1 Lowercase, 1 Number, 1 Special character is required).')
+
     // adding user to db
     const exists = await this.findOne({ email })
 
     if(exists)
-        throw Error('Email already exists.')
+        throw Error('User already exists.')
 
     const salt = await bcrypt.genSalt(10)
     const hash = await bcrypt.hash(password, salt)
 
-    const user = await this.create({ name, role, email, password: hash })
+    const user = await this.create({ email, role, password: hash })
 
     return user
 }
@@ -50,14 +50,14 @@ userSchema.statics.signup = async function(name, role, email, password) {
 // static login method
 userSchema.statics.login = async function(email, password) {
     // validation
-    if(!email || !password.trim())
+    if(!email.trim() || !password.trim())
         throw Error('All fields are required.')
 
     // checking in db    
     const user = await this.findOne({ email })
 
     if(!user)
-        throw Error('No user found.')
+        throw Error('User not found.')
 
     // checking password
     const match = await bcrypt.compare(password, user.password)
